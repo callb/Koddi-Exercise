@@ -3,7 +3,7 @@ from functools import wraps
 import sqlite3 as lite
 
 app = Flask(__name__)
-app.secret_key = 'rcp54mpnoO'
+app.secret_key = 'rcp54mpnoO' # secret key required for sessions
 
 # Checks the session to determine if a user is logged in
 def login_required(f):
@@ -16,6 +16,7 @@ def login_required(f):
     return wrap
 
 @app.route('/', methods=['GET', 'POST'])
+# Handle authentication through the login page
 def login():
     error = None
     if request.method == 'POST':
@@ -42,6 +43,7 @@ def login():
 
     return render_template('login.html', error=error)
 
+# Is the given username found and does the given password match?
 def checkAuthentication(result, provided_username, provided_password):
     for user in result:
         username_in_db = user[0].encode('utf-8')
@@ -54,7 +56,7 @@ def checkAuthentication(result, provided_username, provided_password):
 
 @app.route("/posts")
 @login_required
-#@basic_auth.required
+# Show previously submitted posts, queried from the database
 def render_posts_page():
     con = None
     previous_posts = None
@@ -70,6 +72,7 @@ def render_posts_page():
             con.close()
     return render_template('posts.html', previous_posts=previous_posts)
 
+# Convert each of the posts from unicode and put into a list to be displayed
 def get_posts_content(result):
     contents = []
     for row in result:
@@ -79,6 +82,7 @@ def get_posts_content(result):
 
 @app.route("/submit/post", methods=['GET', 'POST'])
 @login_required
+# If a new posted was submitted, add to the existing list of posts
 def submit_post():
     #TODO: submit post to db
     if (request.method == 'POST'):
@@ -100,6 +104,7 @@ def add_post_to_database(post_content):
         if con:
             con.close()
 
+# Print any internal errors for debugging
 @app.errorhandler(500)
 def internal_error(error):
     print error
