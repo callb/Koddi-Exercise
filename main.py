@@ -1,12 +1,19 @@
 from flask import Flask, flash, redirect, url_for, render_template, request, session, abort
-#from flask_basicauth import BasicAuth
+from functools import wraps
 import sqlite3 as lite
+
 app = Flask(__name__)
+app.secret_key = 'rcp54mpnoO'
 
-#app.config['BASIC_AUTH_USERNAME'] = 'john'
-#app.config['BASIC_AUTH_PASSWORD'] = 'matrix'
-
-#basic_auth = BasicAuth(app)
+# Checks the session to determine if a user is logged in
+def login_required(f):
+    @wraps(f)
+    def wrap(*args, **kwargs):
+        if 'logged_in' in session:
+            return f(*args, **kwargs)
+        else:
+            return redirect(url_for('login'))
+    return wrap
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -28,6 +35,7 @@ def login():
             if con:
                 con.close()
         if isAuthenticated:
+            session['logged_in'] = True
             return redirect(url_for('render_posts_page'))
         else:
             error = "Invalid login credentials"
@@ -45,6 +53,7 @@ def checkAuthentication(result, provided_username, provided_password):
     return False
 
 @app.route("/posts")
+@login_required
 #@basic_auth.required
 def render_posts_page():
     con = None
@@ -69,6 +78,7 @@ def get_posts_content(result):
 
 
 @app.route("/submit/post", methods=['GET', 'POST'])
+@login_required
 def submit_post():
     #TODO: submit post to db
     if (request.method == 'POST'):
