@@ -1,20 +1,51 @@
 from flask import Flask, flash, redirect, url_for, render_template, request, session, abort
+#from flask_basicauth import BasicAuth
 import sqlite3 as lite
 app = Flask(__name__)
 
-#@app.route("/")
-#def render_login_prompt():
-#    return render_template('login.html')
+#app.config['BASIC_AUTH_USERNAME'] = 'john'
+#app.config['BASIC_AUTH_PASSWORD'] = 'matrix'
+
+#basic_auth = BasicAuth(app)
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        #TODO: authentication
-        return redirect(url_for('render_posts_page'))
+        provided_username = request.form['username']
+        provided_password = request.form['password']
+        isAuthenticated = False
+        try:
+            con = lite.connect('users_and_posts.db')
+            cur = con.cursor()
+            cur.execute("SELECT * FROM USERS")
+            isAuthenticated = checkAuthentication(cur.fetchall(),
+                                                    provided_username,
+                                                    provided_password)
+        except lite.Error, e:
+            print "Error %s:" % e.args[0]
+        finally:
+            if con:
+                con.close()
+        if isAuthenticated:
+            return redirect(url_for('render_posts_page'))
+        else:
+            error = "Invalid login credentials"
+
     return render_template('login.html', error=error)
 
+def checkAuthentication(result, provided_username, provided_password):
+    for user in result:
+        username_in_db = user[0].encode('utf-8')
+        password_in_db = user[1].encode('utf-8')
+        if provided_username == username_in_db and provided_password == password_in_db:
+            return True
+
+
+    return False
+
 @app.route("/posts")
+#@basic_auth.required
 def render_posts_page():
     con = None
     previous_posts = None
