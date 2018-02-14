@@ -23,8 +23,7 @@ def render_posts_page():
 def submit_post():
     #TODO: submit post to db
     if (request.method == 'POST'):
-        print 'New Post Received' #request.form('new_post')
-        add_post_to_database()
+        add_post_to_database(request.form['new_post'])
     return redirect(url_for('render_posts_page'))
 
 
@@ -34,7 +33,8 @@ def add_post_to_database(post_content):
     try:
         con = lite.connect('users_and_posts.db')
         cur = con.cursor()
-        cur.execute("INSERT INTO Posts VALUES(" + post_content + ")")
+        cur.execute("INSERT INTO Posts VALUES(NULL," + "'" + post_content + "'" + ")")
+        con.commit()
     except lite.Error, e:
         print "Error %s:" % e.args[0]
     finally:
