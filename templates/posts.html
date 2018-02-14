@@ -1,0 +1,15 @@
+<html>
+  <head>
+    <title>Koddi Development Exercise</title>
+  </head>
+  <body>
+    <h1>My Posts</h1>
+    <div>
+      <form action="{{ url_for('submit_post') }}" method="post">
+          <textarea name='new_post' style="resize:None" cols="50" rows="10" maxlength="140" required>Type your post here!
+          </textarea>
+          <input type="submit">
+      </form>
+    </div>
+  </body>
+</html>
