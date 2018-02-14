@@ -16,7 +16,25 @@ def login():
 
 @app.route("/posts")
 def render_posts_page():
-    return render_template('posts.html')
+    con = None
+    previous_posts = None
+    try:
+        con = lite.connect('users_and_posts.db')
+        cur = con.cursor()
+        cur.execute("SELECT CONTENT FROM POSTS")
+        previous_posts = get_posts_content(cur.fetchall())
+    except lite.Error, e:
+        print "Error %s:" % e.args[0]
+    finally:
+        if con:
+            con.close()
+    return render_template('posts.html', previous_posts=previous_posts)
+
+def get_posts_content(result):
+    contents = []
+    for row in result:
+        contents.append(row[0].encode('utf-8'))
+    return contents
 
 
 @app.route("/submit/post", methods=['GET', 'POST'])

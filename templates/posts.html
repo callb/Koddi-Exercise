@@ -11,5 +11,10 @@
           <input type="submit">
       </form>
     </div>
+    <div>
+      {% for post in previous_posts %}
+        <p> {{ post }} </p>
+      {% endfor %}
+    </div>
   </body>
 </html>
